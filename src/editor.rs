@@ -11,6 +11,11 @@ pub struct Editor {}
 
 // This allows us to add functions (methods) to structs.
 impl Editor {
+    // This is a static function
+    pub fn new() -> Self {
+        Editor {}
+    }
+
     pub fn run(&self) {
         let _stdout = stdout().into_raw_mode().unwrap();
 
