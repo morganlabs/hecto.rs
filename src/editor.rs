@@ -13,7 +13,7 @@ pub struct Editor {}
 impl Editor {
     // This is a static function
     pub fn new() -> Self {
-        return Editor {};
+        return Self {};
     }
 
     pub fn run(&self) {
