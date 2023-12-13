@@ -1,23 +1,36 @@
-// Import `self` and `Read` from the I/O "part" of the standard library
-// `self` refers to `io` itself, and `Read` is the equivalent of `io::Read`
-use std::io::{self, Read};
+use std::io::{self, stdout, Read};
+
+// This is imported from the Termion crate
+// This allows us to enter Raw Mode in the terminal
+use termion::raw::IntoRawMode;
 
 fn main() {
-    // io::stdin() - Is the standard input
-    // .bytes() - Gets the bytes of whatever is input. This is only possible to
-    //            use when `Read` is in scope. This is because Read is a trait
-    //            of io
-    for b in io::stdin().bytes() {
-        // b.unwrap() - !! DANGEROUS !! Unwraps the value so that it can be accessed
-        // as char - Converts the bytes into a character, if possible
-        let char = b.unwrap() as char;
+    let _stdout = stdout().into_raw_mode().unwrap();
 
-        // println!() - A macro to print to the screen
-        println!("{}", char);
+    for b in io::stdin().bytes() {
+        let b = b.unwrap(); // Bytecode
+        let c = b as char; // Convert bytecode to actual character
+
+        // Test whether or not a character is a "Control Character" in ASCII
+        // Control Characters are NON-PRINTABLE, and therefore shouldn't be
+        // printed to the screen.
+        // `\r` is known as a Carraige Return. This makes sure that the next line
+        // is not indented strangely. Disabling this means that all lines are
+        // indented more and more over time. It brings the cursor back to the
+        // beginning of the line
+        if c.is_control() {
+            // In this case, we ONLY print the bytecode.
+            // When using the `format!` macro, line println! does, "{}" indicates
+            // a placeholder for a variable. Whereas {:?} indicates a placeholder
+            // for a variable that does NOT implement the Display trait. This means
+            // you can print ANYTHING.
+            println!("{:?} \r", b);
+        } else {
+            println!("{:?} ({})\r", b, c);
+        }
+
+        if c == 'q' {
+            break;
+        }
     }
 }
-
-// Currently, the terminal is in what is known as "Cooked" or Canonical Mode
-// This means that input is only sent to the program after "Enter" is pressed
-// What we need is Raw mode.
-// There are libraries to do this in Rust
