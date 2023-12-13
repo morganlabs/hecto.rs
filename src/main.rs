@@ -5,7 +5,10 @@ fn main() {
     let _stdout = stdout().into_raw_mode().unwrap();
 
     for byte in io::stdin().bytes() {
-        let byte = byte.unwrap();
+        let byte = match byte {
+            Ok(b) => b,
+            Err(e) => return die(e),
+        };
         let chara = byte as char;
 
         // Is an ASCII control character?
@@ -26,4 +29,9 @@ fn main() {
 fn to_ctrl_byte(c: char) -> u8 {
     let byte = c as u8;
     return byte & 0b0001_1111;
+}
+
+// Panic!!!!!
+fn die(e: std::io::Error) {
+    panic!("{}", e);
 }
