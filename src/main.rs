@@ -1,34 +1,33 @@
-use std::io::{self, stdout, Read};
+use std::io::{self, stdout};
+use termion::event::Key;
+use termion::input::TermRead; // This allows us to do `io::stdin().keys()`
 use termion::raw::IntoRawMode;
 
 fn main() {
     let _stdout = stdout().into_raw_mode().unwrap();
 
-    for byte in io::stdin().bytes() {
-        let byte = match byte {
-            Ok(b) => b,
+    for key in io::stdin().keys() {
+        let key = match key {
+            Ok(k) => k,
             Err(e) => return die(e),
         };
-        let chara = byte as char;
 
-        // Is an ASCII control character?
-        if chara.is_control() {
-            println!("{:?} \r", byte);
-        } else {
-            println!("{:?} ({})\r", byte, chara);
-        }
-
-        // Quit with ctrl+q
-        if byte == to_ctrl_byte('q') {
-            break;
+        match key {
+            // Single character presses
+            Key::Char(c) => {
+                if c.is_control() {
+                    println!("{:?}\r", c as u8);
+                } else {
+                    println!("{:?} ({})\r", c as u8, c);
+                }
+            }
+            // `q` is pressed whilst holding down Ctrl
+            Key::Ctrl('q') => break,
+            // Print anything else
+            // _ is required here as Match is exhaustive
+            _ => println!("{:?}\r", key),
         }
     }
-}
-
-// Convert the character to ctrl+character
-fn to_ctrl_byte(c: char) -> u8 {
-    let byte = c as u8;
-    return byte & 0b0001_1111;
 }
 
 // Panic!!!!!
