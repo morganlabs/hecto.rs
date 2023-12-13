@@ -19,26 +19,44 @@ impl Editor {
     pub fn run(&self) {
         let _stdout = stdout().into_raw_mode().unwrap();
 
-        for key in io::stdin().keys() {
-            let key = match key {
-                Ok(k) => k,
-                Err(e) => return die(e),
+        // This loops forever until explicitly exited with `break` or `return`.
+        loop {
+            // if let essentially a single match statement arm. We can assign
+            // variables to the result of a match arm.
+            // The variable is only available within the scope of the match arm.
+            // If we recieve an Error from process_keypress, assign that value
+            // to `error` and run the code within the block
+            if let Err(error) = self.process_keypress() {
+                die(error);
             };
+        }
+    }
 
-            match key {
-                // Single character presses
-                Key::Char(c) => {
-                    if c.is_control() {
-                        println!("{:?}\r", c as u8);
-                    } else {
-                        println!("{:?} ({})\r", c as u8, c);
-                    }
-                }
-                // `q` is pressed whilst holding down Ctrl
-                Key::Ctrl('q') => break,
-                // Print anything else
-                // _ is required here as Match is exhaustive
-                _ => println!("{:?}\r", key),
+    fn process_keypress(&self) -> Result<(), std::io::Error> {
+        // The ? means to pass up the error (if there is one) to a higher level
+        // This is the same as writing a match statement that returns Err(e)
+        // if an error arises
+        // This allows the calling function to handle the error as it sees fit
+        let key = self.read_key()?;
+
+        // Unlike `if let`, here we must match every possible arm of the match
+        // statement. We will populate this with more key combinations
+        match key {
+            Key::Ctrl('q') => panic!("Exiting..."),
+            _ => (),
+        }
+
+        return Ok(());
+    }
+
+    fn read_key(&self) -> Result<Key, std::io::Error> {
+        // This function loops until a return is reached and breaks the loop
+        // If the function doesnt initially return a key, it will loop until
+        // a key is returned
+        loop {
+            // If io::stdin().lock().keys() returns any value, return it
+            if let Some(key) = io::stdin().lock().keys().next() {
+                return key;
             }
         }
     }
