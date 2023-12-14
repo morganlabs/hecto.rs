@@ -1,5 +1,4 @@
-use std::io::{self, stdout, Write}; // Importing the Write trait allows us to
-                                    // use the flush method on stdout.
+use std::io::{self, stdout, Write};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
@@ -17,7 +16,6 @@ impl Editor {
         let _stdout = stdout().into_raw_mode().unwrap();
 
         loop {
-            // If there is an error clearing the screen, panic
             if let Err(error) = self.clear_screen() {
                 die(error);
             }
@@ -33,10 +31,7 @@ impl Editor {
     }
 
     fn clear_screen(&self) -> Result<(), std::io::Error> {
-        // Use termion as an easy way to clear the screen over escape sequences
-        print!("{}", termion::clear::All);
-
-        // Return the flush method on stdout
+        print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
         return io::stdout().flush();
     }
 
@@ -61,5 +56,7 @@ impl Editor {
 }
 
 fn die(e: std::io::Error) {
+    // Clear screen on panic
+    print!("{}", termion::clear::All);
     panic!("{:?}", e);
 }
