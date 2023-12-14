@@ -1,4 +1,5 @@
-use std::io::{self, stdout};
+use std::io::{self, stdout, Write}; // Importing the Write trait allows us to
+                                    // use the flush method on stdout.
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
@@ -12,24 +13,31 @@ impl Editor {
         return Self { should_quit: false };
     }
 
-    // Since we're mutating `self` here if Ctrl+q is pressed, `self` must be
-    // mutable
     pub fn run(&mut self) {
         let _stdout = stdout().into_raw_mode().unwrap();
 
         loop {
-            // If we recieve an Error from process_keypress, assign that value
-            if let Err(error) = self.process_keypress() {
+            // If there is an error clearing the screen, panic
+            if let Err(error) = self.clear_screen() {
                 die(error);
-            };
+            }
 
-            // If self.should_quit is true, the program has been told to quit
-            // without using panic! or any other methods of quitting. This is
-            // the "best" way to exit the program(?)
             if self.should_quit {
                 break;
             }
+
+            if let Err(error) = self.process_keypress() {
+                die(error);
+            };
         }
+    }
+
+    fn clear_screen(&self) -> Result<(), std::io::Error> {
+        // Use termion as an easy way to clear the screen over escape sequences
+        print!("{}", termion::clear::All);
+
+        // Return the flush method on stdout
+        return io::stdout().flush();
     }
 
     fn process_keypress(&mut self) -> Result<(), std::io::Error> {
