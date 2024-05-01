@@ -5,7 +5,7 @@ pub struct Editor {}
 
 impl Default for Editor {
     fn default() -> Self {
-        Self {}
+        return Self {};
     }
 }
 
@@ -20,23 +20,25 @@ impl Editor {
                 Ok(key) => match key {
                     Key::Char(c) => Self::handle_character(key, c),
                     Key::Ctrl('q') => break,
-                    _ => println!("{:?}\r", key),
+                    _ => println!("{key:?}\r"),
                 },
-                Err(err) => Self::die(err),
+                Err(err) => Self::die(&err),
             };
         }
     }
 
     fn handle_character(key: Key, c: char) {
+        let b = c as u8;
+
         // Do NOT print ASCII control characters
         if c.is_control() {
-            println!("{:?} \r", c as u8);
+            println!("{b} \r");
         } else {
-            println!("{:?} ({})\r", key, c as u8);
+            println!("{key:?} ({b})\r");
         }
     }
 
-    fn die(e: std::io::Error) {
+    fn die(e: &std::io::Error) {
         panic!("{e}");
     }
 }
