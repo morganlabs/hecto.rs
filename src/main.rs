@@ -21,8 +21,13 @@ fn main() {
             println!("{:?} ({})\r", b, c);
         }
 
-        if c == 'q' {
+        if b == to_ctrl_byte('q') {
             break;
         }
     }
+}
+
+fn to_ctrl_byte(c: char) -> u8 {
+    let b = c as u8;
+    return b & 0b0001_1111;
 }
