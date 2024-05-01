@@ -5,4 +5,4 @@ authors = ["Morgan Jones <me@morganlabs.dev>"]
 edition = "2021"
 
 [dependencies]
-
+termion = "1"
