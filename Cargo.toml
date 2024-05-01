@@ -1,0 +1,7 @@
+[package]
+name = "hecto"
+version = "0.1.0"
+authors = ["Morgan Jones <me@morganlabs.dev>"]
+edition = "2021"
+
+[dependencies]
