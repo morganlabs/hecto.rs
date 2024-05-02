@@ -55,12 +55,20 @@ impl Editor {
 
         if self.should_quit {
             println!("Goodbye!\r");
+        } else {
+            Self::draw_rows();
         }
 
         // Flush stdout
         // The stdout may buffer some values and not print them out directly
         // Flushing the stdout forces it to print all buffered values
         io::stdout().flush()
+    }
+
+    fn draw_rows() {
+        for _ in 0..=24 {
+            println!("~\r");
+        }
     }
 
     fn die(e: &std::io::Error) {
