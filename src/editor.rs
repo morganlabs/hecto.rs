@@ -51,7 +51,7 @@ impl Editor {
     }
 
     fn clear_screen() -> Result<(), io::Error> {
-        print!("{}", termion::clear::All);
+        print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
 
         // Flush stdout
         // The stdout may buffer some values and not print them out directly
