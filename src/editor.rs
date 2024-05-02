@@ -17,7 +17,7 @@ impl Editor {
         let _stdout = stdout().into_raw_mode().unwrap();
 
         loop {
-            if let Err(err) = Self::clear_screen() {
+            if let Err(err) = self.clear_screen() {
                 Self::die(&err);
             }
 
@@ -50,8 +50,12 @@ impl Editor {
         }
     }
 
-    fn clear_screen() -> Result<(), io::Error> {
+    fn clear_screen(&self) -> Result<(), io::Error> {
         print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+
+        if self.should_quit {
+            println!("Goodbye!\r");
+        }
 
         // Flush stdout
         // The stdout may buffer some values and not print them out directly
@@ -60,6 +64,7 @@ impl Editor {
     }
 
     fn die(e: &std::io::Error) {
+        print!("{}", termion::clear::All);
         panic!("{e}");
     }
 }
