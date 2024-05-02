@@ -1,4 +1,4 @@
-use std::io::{self, stdout};
+use std::io::{self, stdout, Write};
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 
 pub struct Editor {
@@ -17,6 +17,10 @@ impl Editor {
         let _stdout = stdout().into_raw_mode().unwrap();
 
         loop {
+            if let Err(err) = Self::clear_screen() {
+                Self::die(&err);
+            }
+
             if self.should_quit {
                 break;
             }
@@ -31,6 +35,7 @@ impl Editor {
         let pressed_key = Self::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Char(c) => println!("{c}\r"),
             _ => (),
         }
 
@@ -43,6 +48,15 @@ impl Editor {
                 return key;
             }
         }
+    }
+
+    fn clear_screen() -> Result<(), io::Error> {
+        print!("{}", termion::clear::All);
+
+        // Flush stdout
+        // The stdout may buffer some values and not print them out directly
+        // Flushing the stdout forces it to print all buffered values
+        io::stdout().flush()
     }
 
     fn die(e: &std::io::Error) {
