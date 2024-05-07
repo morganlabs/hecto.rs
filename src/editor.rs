@@ -1,23 +1,27 @@
-use std::io::{self, stdout, Write};
-use termion::{event::Key, input::TermRead, raw::IntoRawMode};
+use crate::Terminal;
+use std::io;
+use termion::event::Key;
 
 pub struct Editor {
+    terminal: Terminal,
     should_quit: bool,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for Editor {
     fn default() -> Self {
-        Self { should_quit: false }
+        Self {
+            terminal: Terminal::default(),
+            should_quit: false,
+        }
     }
 }
 
 impl Editor {
+    /// Run the editor environment.
     pub fn run(&mut self) {
-        // Enter terminal "raw" mode
-        let _stdout = stdout().into_raw_mode().unwrap();
-
         loop {
-            if let Err(err) = self.clear_screen() {
+            if let Err(err) = self.refresh_screen() {
                 Self::die(&err);
             }
 
@@ -31,46 +35,48 @@ impl Editor {
         }
     }
 
+    ///
+    ///
+    /// # Errors
+    ///
+    /// It is considered an error if ``Terminal::flush()`` fails to flush
+    /// stdout.
+    fn refresh_screen(&self) -> Result<(), std::io::Error> {
+        Terminal::clear_screen();
+        Terminal::goto(0, 0);
+
+        if self.should_quit {
+            println!("Goodbye!\r");
+            return Ok(());
+        }
+
+        self.draw_rows();
+        Terminal::goto(0, 0);
+        Terminal::flush()
+    }
+
+    /// Processes the keypresses input into the terminal.
+    /// Manages things like keyboard commands.
     fn process_keypress(&mut self) -> Result<(), io::Error> {
-        let pressed_key = Self::read_key()?;
+        let pressed_key = Terminal::read_key()?;
+
+        #[allow(clippy::single_match)]
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
-            Key::Char(c) => println!("{c}\r"),
             _ => (),
         }
 
         Ok(())
     }
 
-    fn read_key() -> Result<Key, std::io::Error> {
-        loop {
-            if let Some(key) = io::stdin().lock().keys().next() {
-                return key;
-            }
-        }
-    }
-
-    fn clear_screen(&self) -> Result<(), io::Error> {
-        print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
-
-        if self.should_quit {
-            println!("Goodbye!\r");
-        } else {
-            Self::draw_rows();
-        }
-
-        // Flush stdout
-        // The stdout may buffer some values and not print them out directly
-        // Flushing the stdout forces it to print all buffered values
-        io::stdout().flush()
-    }
-
-    fn draw_rows() {
-        for _ in 0..=24 {
+    /// Draws rows of text into the terminal.
+    fn draw_rows(&self) {
+        for _ in 0..self.terminal.size().height {
             println!("~\r");
         }
     }
 
+    /// Clears the screen and panics!
     fn die(e: &std::io::Error) {
         print!("{}", termion::clear::All);
         panic!("{e}");
